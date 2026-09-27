@@ -10,7 +10,11 @@ function supabaseConfig() {
   const secret = process.env.SUPABASE_SECRET_KEY;
 
   if (!url || !secret) {
-    throw new Error('Supabase não configurado.');
+    const missing = [
+      !url ? 'SUPABASE_URL' : null,
+      !secret ? 'SUPABASE_SECRET_KEY' : null,
+    ].filter(Boolean).join(' e ');
+    throw new Error(`Supabase não configurado: faltando ${missing}.`);
   }
 
   return { url, secret };
