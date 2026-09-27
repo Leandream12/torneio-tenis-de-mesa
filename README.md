@@ -101,3 +101,5 @@ Com a integração Git ativa, pushes em branches geram Preview Deployments e a `
 <!-- preview redeploy after Vercel environment setup -->
 
 <!-- preview redeploy after Supabase-Vercel integration -->
+
+<!-- preview redeploy after SUPABASE_URL correction -->
