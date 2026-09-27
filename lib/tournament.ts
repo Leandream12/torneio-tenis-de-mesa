@@ -103,6 +103,8 @@ export function applyAction(current: Tournament, action: Action): Tournament {
       [p[i], p[j]] = [p[j], p[i]];
     }
     t.players = p; t.matches = schedule(p); t.started = true;
+  } else if (action.type === 'reset') {
+    return emptyTournament();
   } else if (action.type === 'result') {
     const m = t.matches.find(m => m.id === action.id);
     if (!m) throw new Error('Partida não encontrada ou ainda não definida.');
