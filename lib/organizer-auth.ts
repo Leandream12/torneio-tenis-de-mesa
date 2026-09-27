@@ -1,11 +1,20 @@
-import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
+import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import { cookies } from 'next/headers';
 
 const COOKIE_NAME = 'arena_solar_organizer';
 const SESSION_TTL_SECONDS = 60 * 60 * 12;
 
-function getSecret() {
-  return process.env.ORGANIZER_PASSWORD || '';
+function getPassword() {
+  return process.env.ORGANIZER_PASSWORD?.trim() || '';
+}
+
+function getLegacyHash() {
+  const value = process.env.ORGANIZER_SETUP_HASH?.trim().toLowerCase() || '';
+  return /^[a-f0-9]{64}$/.test(value) ? value : '';
+}
+
+function getSessionSecret() {
+  return getPassword() || getLegacyHash();
 }
 
 function sign(value: string, secret: string) {
@@ -19,16 +28,23 @@ function safeEqual(a: string, b: string) {
 }
 
 export function organizerConfigured() {
-  return Boolean(getSecret());
+  return Boolean(getSessionSecret());
 }
 
 export function verifyOrganizerKey(password: string) {
-  const secret = getSecret();
-  return Boolean(secret) && safeEqual(password, secret);
+  const candidate = password.trim();
+  const plain = getPassword();
+  if (plain && safeEqual(candidate, plain)) return true;
+
+  const legacyHash = getLegacyHash();
+  if (!legacyHash) return false;
+
+  const candidateHash = createHash('sha256').update(candidate).digest('hex');
+  return safeEqual(candidateHash, legacyHash);
 }
 
 export async function isOrganizer() {
-  const secret = getSecret();
+  const secret = getSessionSecret();
   if (!secret) return false;
 
   const jar = await cookies();
@@ -49,7 +65,7 @@ export async function isOrganizer() {
 }
 
 export function organizerCookie() {
-  const secret = getSecret();
+  const secret = getSessionSecret();
   if (!secret) throw new Error('Senha do organizador não configurada.');
 
   const expires = Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS;
