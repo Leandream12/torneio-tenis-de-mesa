@@ -97,3 +97,5 @@ pnpm build
 ```
 
 Com a integração Git ativa, pushes em branches geram Preview Deployments e a `main` publica em Production.
+
+<!-- preview redeploy after Vercel environment setup -->
