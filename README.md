@@ -70,3 +70,27 @@ Os testes verificam exatamente 8 inscritos, quartas em set único, semifinais e 
 - `.openai/hosting.json`: configuração lógica de publicação.
 
 O GitHub guarda o código. Publicar alterações exige gerar e implantar uma nova versão; um push isolado no GitHub não altera automaticamente o site.
+
+
+## Publicação no Vercel
+
+A versão da branch `vercel-migration` roda como Next.js nativo no Vercel.
+
+### Variáveis obrigatórias
+
+Configure no projeto do Vercel:
+
+- `ORGANIZER_SETUP_HASH`: SHA-256 hexadecimal da sua chave privada de organizador.
+- `KV_REST_API_URL` e `KV_REST_API_TOKEN`: fornecidos por uma integração Redis/Upstash no Vercel. O código também aceita `UPSTASH_REDIS_REST_URL` e `UPSTASH_REDIS_REST_TOKEN`.
+- `TOURNAMENT_STATE_KEY` é opcional e serve para separar ambientes.
+
+A área pública continua disponível para qualquer visitante. A administração é liberada neste navegador após informar a chave privada; a sessão fica em cookie `HttpOnly`, `SameSite=Strict` e `Secure` em produção.
+
+### Build
+
+```sh
+pnpm install --frozen-lockfile
+pnpm build
+```
+
+Ao conectar o repositório ao Vercel, use o preset **Next.js** e mantenha a raiz do projeto em `.`. Pushes futuros podem gerar novos previews automaticamente pela integração Git.
