@@ -25,8 +25,13 @@ export async function GET() {
       needsSetup: !organizer,
       organizerConfigured: organizerConfigured(),
     });
-  } catch {
-    return reply({ error: 'Não foi possível carregar o torneio. Tente novamente.' }, 503);
+  } catch (error) {
+    console.error('Tournament GET failed', error);
+    const detail =
+      process.env.VERCEL_ENV === 'preview' && error instanceof Error
+        ? error.message
+        : 'Não foi possível carregar o torneio. Tente novamente.';
+    return reply({ error: detail }, 503);
   }
 }
 
