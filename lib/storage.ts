@@ -6,12 +6,15 @@ type StateRow = {
 };
 
 function supabaseConfig() {
-  const url = process.env.SUPABASE_URL?.replace(/\/$/, '');
-  const secret = process.env.SUPABASE_SECRET_KEY;
+  const rawUrl =
+    process.env.SUPABASE_URL?.trim() ||
+    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  const url = rawUrl?.replace(/\/$/, '');
+  const secret = process.env.SUPABASE_SECRET_KEY?.trim();
 
   if (!url || !secret) {
     const missing = [
-      !url ? 'SUPABASE_URL' : null,
+      !url ? 'SUPABASE_URL/NEXT_PUBLIC_SUPABASE_URL' : null,
       !secret ? 'SUPABASE_SECRET_KEY' : null,
     ].filter(Boolean).join(' e ');
     throw new Error(`Supabase não configurado: faltando ${missing}.`);
