@@ -1,45 +1,63 @@
-import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
+import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import { cookies } from 'next/headers';
 
 const COOKIE_NAME = 'arena_solar_organizer';
-const SESSION_MESSAGE = 'arena-solar-organizer-session-v1';
+const SESSION_TTL_SECONDS = 60 * 60 * 12;
 
-function configuredHash() {
-  const value = process.env.ORGANIZER_SETUP_HASH?.trim().toLowerCase();
-  return value && /^[a-f0-9]{64}$/.test(value) ? value : null;
+function getSecret() {
+  return process.env.ORGANIZER_PASSWORD || '';
 }
 
-function sessionToken() {
-  const hash = configuredHash();
-  if (!hash) throw new Error('Área do organizador não configurada.');
-  return createHmac('sha256', hash).update(SESSION_MESSAGE).digest('hex');
+function sign(value: string, secret: string) {
+  return createHmac('sha256', secret).update(value).digest('base64url');
 }
 
 function safeEqual(a: string, b: string) {
-  const left = Buffer.from(a);
-  const right = Buffer.from(b);
+  const left = Buffer.from(String(a));
+  const right = Buffer.from(String(b));
   return left.length === right.length && timingSafeEqual(left, right);
 }
 
 export function organizerConfigured() {
-  return configuredHash() !== null;
+  return Boolean(getSecret());
 }
 
-export function verifyOrganizerKey(key: string) {
-  const expected = configuredHash();
-  if (!expected) return false;
-  const actual = createHash('sha256').update(key).digest('hex');
-  return safeEqual(actual, expected);
+export function verifyOrganizerKey(password: string) {
+  const secret = getSecret();
+  return Boolean(secret) && safeEqual(password, secret);
 }
 
 export async function isOrganizer() {
-  if (!organizerConfigured()) return false;
+  const secret = getSecret();
+  if (!secret) return false;
+
   const jar = await cookies();
-  const current = jar.get(COOKIE_NAME)?.value;
-  return !!current && safeEqual(current, sessionToken());
+  const token = jar.get(COOKIE_NAME)?.value;
+  if (!token) return false;
+
+  const parts = token.split('.');
+  if (parts.length !== 3) return false;
+
+  const [expiresText, nonce, receivedSignature] = parts;
+  const expires = Number(expiresText);
+  if (!Number.isFinite(expires) || expires < Math.floor(Date.now() / 1000) || !nonce) {
+    return false;
+  }
+
+  const expectedSignature = sign(`${expiresText}.${nonce}`, secret);
+  return safeEqual(receivedSignature, expectedSignature);
 }
 
 export function organizerCookie() {
-  const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
-  return `${COOKIE_NAME}=${sessionToken()}; Path=/; HttpOnly; SameSite=Strict; Max-Age=2592000${secure}`;
+  const secret = getSecret();
+  if (!secret) throw new Error('Senha do organizador não configurada.');
+
+  const expires = Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS;
+  const nonce = randomBytes(18).toString('base64url');
+  const payload = `${expires}.${nonce}`;
+  const signature = sign(payload, secret);
+  const token = `${payload}.${signature}`;
+  const secure = process.env.NODE_ENV === 'development' ? '' : '; Secure';
+
+  return `${COOKIE_NAME}=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${SESSION_TTL_SECONDS}${secure}`;
 }
