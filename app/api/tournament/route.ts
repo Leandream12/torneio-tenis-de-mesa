@@ -23,7 +23,6 @@ export async function GET() {
       ...state,
       isOrganizer: organizer,
       needsSetup: !organizer,
-      signedIn: true,
       organizerConfigured: organizerConfigured(),
     });
   } catch {
