@@ -1,6 +1,86 @@
-import { env } from 'cloudflare:workers';
-import { emptyTournament, normalizeTournament } from './tournament';
-export function database(){const db=(env as unknown as {DB:D1Database}).DB;if(!db)throw new Error('Banco indisponível.');return db;}
-export async function readTournament(){const row=await database().prepare('SELECT data, version FROM tournament WHERE id = 1').first<{data:string;version:number}>();return row?{tournament:normalizeTournament(JSON.parse(row.data)),version:row.version}:{tournament:emptyTournament(),version:0};}
-export async function organizerId(){return (await database().prepare('SELECT user_id FROM organizer WHERE id = 1').first<{user_id:string}>())?.user_id;}
-export function setupHash(){return (env as unknown as {ORGANIZER_SETUP_HASH?:string}).ORGANIZER_SETUP_HASH;}
+import { emptyTournament, normalizeTournament, type Tournament } from './tournament';
+
+type StateRow = {
+  data: unknown;
+  version: number | string;
+};
+
+function supabaseConfig() {
+  const rawUrl =
+    process.env.SUPABASE_URL?.trim() ||
+    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  const url = rawUrl?.replace(/\/$/, '');
+  const secret = process.env.SUPABASE_SECRET_KEY?.trim();
+
+  if (!url || !secret) {
+    const missing = [
+      !url ? 'SUPABASE_URL/NEXT_PUBLIC_SUPABASE_URL' : null,
+      !secret ? 'SUPABASE_SECRET_KEY' : null,
+    ].filter(Boolean).join(' e ');
+    throw new Error(`Supabase não configurado: faltando ${missing}.`);
+  }
+
+  return { url, secret };
+}
+
+function headers(extra: Record<string, string> = {}) {
+  const { secret } = supabaseConfig();
+  return {
+    apikey: secret,
+    'Content-Type': 'application/json',
+    ...extra,
+  };
+}
+
+export async function readTournament() {
+  const { url } = supabaseConfig();
+  const response = await fetch(
+    `${url}/rest/v1/tournament_state?id=eq.1&select=data,version&limit=1`,
+    {
+      headers: headers(),
+      cache: 'no-store',
+    },
+  );
+
+  if (!response.ok) {
+    const details = await response.text();
+    throw new Error(`Falha ao carregar o torneio no Supabase: ${response.status} ${details}`);
+  }
+
+  const rows = (await response.json()) as StateRow[];
+  const row = rows[0];
+
+  if (!row) {
+    return { tournament: emptyTournament(), version: 0 };
+  }
+
+  return {
+    tournament: normalizeTournament(row.data),
+    version: Number(row.version),
+  };
+}
+
+export async function writeTournament(next: Tournament, expectedVersion: number) {
+  const { url } = supabaseConfig();
+  const response = await fetch(
+    `${url}/rest/v1/tournament_state?id=eq.1&version=eq.${expectedVersion}`,
+    {
+      method: 'PATCH',
+      headers: headers({ Prefer: 'return=representation' }),
+      body: JSON.stringify({
+        data: next,
+        version: expectedVersion + 1,
+        updated_at: new Date().toISOString(),
+      }),
+      cache: 'no-store',
+    },
+  );
+
+  if (!response.ok) {
+    const details = await response.text();
+    throw new Error(`Falha ao salvar o torneio no Supabase: ${response.status} ${details}`);
+  }
+
+  const rows = (await response.json()) as StateRow[];
+  return rows.length === 1;
+}

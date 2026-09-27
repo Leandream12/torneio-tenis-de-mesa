@@ -70,3 +70,36 @@ Os testes verificam exatamente 8 inscritos, quartas em set único, semifinais e 
 - `.openai/hosting.json`: configuração lógica de publicação.
 
 O GitHub guarda o código. Publicar alterações exige gerar e implantar uma nova versão; um push isolado no GitHub não altera automaticamente o site.
+
+## Publicação no Vercel
+
+A branch `vercel-migration` roda como Next.js nativo no Vercel e usa o mesmo padrão simples do RespiraMente: Functions no Vercel acessando o Supabase REST diretamente.
+
+### Variáveis obrigatórias
+
+Configure no projeto do Vercel, em **Preview** e **Production**:
+
+- `SUPABASE_URL`
+- `SUPABASE_SECRET_KEY`
+- `ORGANIZER_PASSWORD`
+
+A senha do organizador nunca é enviada para o frontend como configuração. Após o login, a API cria uma sessão assinada em cookie HttpOnly.
+
+### Supabase
+
+Execute o arquivo `supabase/tournament_state.sql` no SQL Editor do projeto Supabase antes do primeiro uso.
+
+### Build
+
+```sh
+pnpm install --frozen-lockfile
+pnpm build
+```
+
+Com a integração Git ativa, pushes em branches geram Preview Deployments e a `main` publica em Production.
+
+<!-- preview redeploy after Vercel environment setup -->
+
+<!-- preview redeploy after Supabase-Vercel integration -->
+
+<!-- preview redeploy after SUPABASE_URL correction -->
