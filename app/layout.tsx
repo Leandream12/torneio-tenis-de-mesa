@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Arena Solar | Torneio de Tênis de Mesa",
-  description: "SIPAT Grupo Solar: jogadores, partidas e classificação do torneio de tênis de mesa.",
+  description: "SIPAT Grupo Solar: mata-mata com 8 jogadores. Quartas em set único; semifinais e final em melhor de 3 sets.",
   other: {
     "codex-preview": "development",
   },

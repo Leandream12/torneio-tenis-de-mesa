@@ -1,27 +1,35 @@
 # Arena Solar — Torneio de Tênis de Mesa
 
-Site do torneio da SIPAT do Grupo Solar. Até 12 jogadores, dois grupos equilibrados, classificação e resultados em melhor de 3 sets.
+Site do torneio da SIPAT do Grupo Solar: **8 jogadores em mata-mata**, sem fase de grupos.
+
+| Fase | Partidas | Formato | Vitória |
+| --- | --- | --- | --- |
+| Quartas de final | 4 | Set único | Vencer 1 set |
+| Semifinais | 2 | Melhor de 3 sets | Vencer 2 sets |
+| Final | 1 | Melhor de 3 sets | Vencer 2 sets |
+
+**Total: 7 partidas. A final é uma única partida em melhor de 3 sets**, e não uma série de partidas.
 
 ## Como usar
 
 1. Abra o site privado com sua conta ChatGPT.
-2. Clique em **Área do organizador** e use a chave de ativação fornecida fora deste repositório. Essa etapa vincula permanentemente a organização ao seu identificador autenticado.
-3. Cadastre de 4 a 12 nomes, um por linha.
-4. Confirme o sorteio. O sistema distribui os jogadores e gera todas as partidas dos grupos.
-5. Abra cada partida para registrar seus sets. A classificação atualiza automaticamente.
-6. Ao concluir os grupos, gere as semifinais: 1º A × 2º B e 1º B × 2º A. A final é criada quando ambas terminarem.
+2. Se ainda não ativou, clique em **Área do organizador** e use a chave fornecida fora deste repositório. Uma ativação existente continua válida.
+3. Cadastre os 8 jogadores, um por linha. É possível salvar inscrições incompletas, mas o sorteio exige exatamente 8 nomes distintos.
+4. Confirme **Sortear quartas e iniciar**. Cada jogador aparece em um dos quatro confrontos.
+5. Abra cada partida e registre o placar. Nas quartas, o formulário exibe apenas um set; nas semifinais e na final, permite 2 ou 3 sets.
+6. Os vencedores avançam automaticamente. QF 1 e QF 2 alimentam SF 1; QF 3 e QF 4 alimentam SF 2. Os vencedores das semifinais disputam a única final.
 
-Não há dados fictícios na base de produção. Os espectadores têm acesso de leitura quando o compartilhamento do site for habilitado; a primeira publicação é privada para o proprietário.
+Sets até 11 pontos, sempre com dois pontos de vantagem. Após 10–10, o set termina na primeira vantagem de dois. A API rejeita sets extras depois que a partida já foi decidida.
 
-## Regulamento adotado
+## Classificação e correções
 
-- Dois grupos; cada jogador enfrenta todos os outros do próprio grupo uma vez.
-- Todas as partidas, inclusive semifinal e final, em melhor de 3 sets.
-- Sets até 11, sempre com dois pontos de diferença; após 10–10, encerra na primeira vantagem de dois pontos.
-- Classificação: vitórias, saldo de sets, saldo de pontos e, persistindo empate absoluto, prioridade da ordem do sorteio inicial. Este último critério é uma regra local do torneio, não uma alegação de regulamento oficial.
-- Os dois primeiros de cada grupo se classificam.
-- Para 12 inscritos: 30 jogos de grupos + 2 semifinais + 1 final = 33 partidas.
-- Os grupos são bloqueados ao gerar semifinais. Uma semifinal pode ser corrigida antes do resultado da final; sua correção recria a final. Para corrigir após isso, primeiro remova o resultado da final.
+A tabela acompanha jogos, vitórias, derrotas, sets ganhos/perdidos e situação. O campeão termina em 1º, o vice em 2º; eliminados nas semifinais dividem o 3º lugar e eliminados nas quartas dividem o 5º. Sem disputa de terceiro lugar ou desempate artificial entre eliminados da mesma fase.
+
+É possível corrigir pontos mantendo o vencedor. Para alterar o vencedor ou remover um resultado que já alimentou uma partida com placar, primeiro remova o resultado da partida dependente, começando pela final. Assim nenhum resultado é descartado silenciosamente.
+
+## Compatibilidade com o formato anterior
+
+Registros antigos de grupos são convertidos para um cadastro ainda não iniciado. Todos os nomes são mantidos, inclusive quando houver mais de 8; o organizador revisa e escolhe os 8 antes do novo sorteio. O documento anterior completo fica preservado em `previousFormat`, incluindo seus resultados. A conversão é salva na próxima alteração autorizada, não durante a leitura. A conta do organizador e a chave existente não mudam. Não há migração destrutiva do banco.
 
 ## Segurança e persistência
 
@@ -46,11 +54,11 @@ npm run dev
 O projeto inclui `pnpm-lock.yaml` para instalações reproduzíveis com pnpm. As migrações já geradas são versionadas em `drizzle/`; não reaplique manualmente uma migração já executada. A publicação Sites aplica as migrações em produção. O preview local não simula login: a área pública pode ser inspecionada, mas alterações autenticadas exigem o ambiente de identidade confiável.
 
 ```sh
-node --experimental-strip-types --test tests/tournament.test.mjs
+node --experimental-strip-types --test tests/*.test.mjs
 node node_modules/typescript/bin/tsc --noEmit
 ```
 
-Os testes verificam geração de confrontos para cada quantidade de 4 a 12 jogadores, regras de pontos e sets, classificação, progressão até o campeão, correção de dependências e validação de cadastro.
+Os testes verificam exatamente 8 inscritos, quartas em set único, semifinais e final MD3, sete partidas até o campeão, classificação, correção de dependências, preservação dos dados antigos e autorização da API.
 
 ## Estrutura principal
 
