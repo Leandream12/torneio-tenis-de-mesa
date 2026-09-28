@@ -64,6 +64,11 @@ export async function isOrganizer() {
   return safeEqual(receivedSignature, expectedSignature);
 }
 
+export function clearOrganizerCookie() {
+  const secure = process.env.NODE_ENV === 'development' ? '' : '; Secure';
+  return `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secure}`;
+}
+
 export function organizerCookie() {
   const secret = getSessionSecret();
   if (!secret) throw new Error('Senha do organizador não configurada.');

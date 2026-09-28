@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Arena Solar | Torneio de Tênis de Mesa",
-  description: "SIPAT Grupo Solar: mata-mata com 8 jogadores. Quartas em set único; semifinais e final em melhor de 3 sets.",
+  title: "Arena Coca-Cola | Torneio de Tênis de Mesa",
+  description: "Torneio interno de tênis de mesa: 16 jogadores divididos entre Chave do Dia e Chave da Noite, com final entre os vencedores.",
   other: {
     "codex-preview": "development",
   },
