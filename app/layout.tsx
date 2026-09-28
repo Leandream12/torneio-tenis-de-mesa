@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Arena Coca-Cola | Torneio de Tênis de Mesa",
-  description: "Torneio interno de tênis de mesa: 8 jogadores em mata-mata, com acompanhamento ao vivo, chaveamento e resultados.",
+  description: "Torneio interno de tênis de mesa: 16 jogadores divididos entre Chave do Dia e Chave da Noite, com final entre os vencedores.",
   other: {
     "codex-preview": "development",
   },
