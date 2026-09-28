@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { Maximize2, RefreshCw, Table2, Trophy, Wifi, WifiOff } from 'lucide-react';
+import ConfettiBurst from '@/components/confetti-burst';
 import {
   formatName,
   score,
@@ -54,6 +55,9 @@ export default function Telao() {
   const t = data?.tournament;
   const final = t?.matches.find(match => match.stage === 'F');
   const champion = final && winner(final);
+  const celebrationToken = champion && final
+    ? `${champion}:${final.sets.map(set => set.join('-')).join('/')}`
+    : null;
   const done = t?.matches.filter(winner).length ?? 0;
   const nextMatch = t?.matches.find(match => !winner(match));
   const playerName = (id: string) => t?.players.find(player => player.id === id)?.name ?? 'A definir';
@@ -129,6 +133,7 @@ export default function Telao() {
 
   return (
     <div className="display-page">
+      <ConfettiBurst token={celebrationToken} />
       <header className="display-header">
         <div className="display-brand">
           <span><Table2 size={24} /></span>
