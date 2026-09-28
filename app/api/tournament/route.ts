@@ -1,11 +1,12 @@
 import {
+  clearOrganizerCookie,
   isOrganizer,
   organizerConfigured,
   organizerCookie,
   verifyOrganizerKey,
 } from '@/lib/organizer-auth';
 import { readTournament, writeTournament } from '@/lib/storage';
-import { applyAction } from '@/lib/tournament';
+import { applyAction, withoutHistory } from '@/lib/tournament';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -21,6 +22,7 @@ export async function GET() {
     const [state, organizer] = await Promise.all([readTournament(), isOrganizer()]);
     return reply({
       ...state,
+      tournament: organizer ? state.tournament : withoutHistory(state.tournament),
       isOrganizer: organizer,
       needsSetup: !organizer,
       organizerConfigured: organizerConfigured(),
@@ -63,11 +65,17 @@ export async function POST(req: Request) {
         action.key.length > 100 ||
         !verifyOrganizerKey(action.key)
       ) {
-        return reply({ error: 'Chave de organização inválida.' }, 403);
+        return reply({ error: 'Senha do organizador inválida.' }, 403);
       }
 
       const response = reply({ ok: true });
       response.headers.append('Set-Cookie', organizerCookie());
+      return response;
+    }
+
+    if (action.type === 'logout') {
+      const response = reply({ ok: true });
+      response.headers.append('Set-Cookie', clearOrganizerCookie());
       return response;
     }
 
