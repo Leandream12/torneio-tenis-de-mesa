@@ -1,105 +1,221 @@
-# Arena Solar — Torneio de Tênis de Mesa
+# Arena Coca-Cola — Torneio de Tênis de Mesa
 
-Site do torneio da SIPAT do Grupo Solar: **8 jogadores em mata-mata**, sem fase de grupos.
+Site para acompanhar e administrar um torneio interno de tênis de mesa com **8 jogadores em mata-mata**. A aplicação foi criada para exibir o chaveamento, resultados, classificação e campeão em tempo real, com uma área de administração protegida por senha.
+
+## Formato do torneio
 
 | Fase | Partidas | Formato | Vitória |
-| --- | --- | --- | --- |
+| --- | ---: | --- | --- |
 | Quartas de final | 4 | Set único | Vencer 1 set |
 | Semifinais | 2 | Melhor de 3 sets | Vencer 2 sets |
 | Final | 1 | Melhor de 3 sets | Vencer 2 sets |
 
-**Total: 7 partidas. A final é uma única partida em melhor de 3 sets**, e não uma série de partidas.
+**Total: 7 partidas.**
 
-## Como usar
+Cada set vai até **11 pontos**, sempre com diferença mínima de 2 pontos. Após 10 × 10, o set continua até que um jogador abra dois pontos de vantagem.
 
-1. Abra o site privado com sua conta ChatGPT.
-2. Se ainda não ativou, clique em **Área do organizador** e use a chave fornecida fora deste repositório. Uma ativação existente continua válida.
-3. Cadastre os 8 jogadores, um por linha. É possível salvar inscrições incompletas, mas o sorteio exige exatamente 8 nomes distintos.
-4. Confirme **Sortear quartas e iniciar**. Cada jogador aparece em um dos quatro confrontos.
-5. Abra cada partida e registre o placar. Nas quartas, o formulário exibe apenas um set; nas semifinais e na final, permite 2 ou 3 sets.
-6. Os vencedores avançam automaticamente. QF 1 e QF 2 alimentam SF 1; QF 3 e QF 4 alimentam SF 2. Os vencedores das semifinais disputam a única final.
+## Funcionalidades
 
-Sets até 11 pontos, sempre com dois pontos de vantagem. Após 10–10, o set termina na primeira vantagem de dois. A API rejeita sets extras depois que a partida já foi decidida.
+- cadastro de até 8 jogadores;
+- sorteio automático das quartas de final;
+- avanço automático dos vencedores;
+- quartas em set único;
+- semifinais e final em melhor de 3 sets;
+- classificação com jogos, vitórias, derrotas e sets;
+- atualização automática da tela a cada 20 segundos;
+- correção e remoção de resultados pelo organizador;
+- destaque automático do campeão;
+- botão de **Resetar torneio** exclusivo da área do organizador;
+- layout responsivo para desktop e celular;
+- identidade visual esportiva em vermelho, branco e grafite.
 
-## Classificação e correções
+## Área do organizador
 
-A tabela acompanha jogos, vitórias, derrotas, sets ganhos/perdidos e situação. O campeão termina em 1º, o vice em 2º; eliminados nas semifinais dividem o 3º lugar e eliminados nas quartas dividem o 5º. Sem disputa de terceiro lugar ou desempate artificial entre eliminados da mesma fase.
+O site é público para consulta, mas somente o organizador autenticado pode alterar o torneio.
 
-É possível corrigir pontos mantendo o vencedor. Para alterar o vencedor ou remover um resultado que já alimentou uma partida com placar, primeiro remova o resultado da partida dependente, começando pela final. Assim nenhum resultado é descartado silenciosamente.
+Para entrar:
 
-## Compatibilidade com o formato anterior
+1. clique em **Área do organizador**;
+2. informe a senha configurada em `ORGANIZER_PASSWORD`;
+3. após a autenticação, uma sessão assinada é criada em cookie **HttpOnly**;
+4. a sessão permanece válida por até **12 horas** neste navegador.
 
-Registros antigos de grupos são convertidos para um cadastro ainda não iniciado. Todos os nomes são mantidos, inclusive quando houver mais de 8; o organizador revisa e escolhe os 8 antes do novo sorteio. O documento anterior completo fica preservado em `previousFormat`, incluindo seus resultados. A conversão é salva na próxima alteração autorizada, não durante a leitura. A conta do organizador e a chave existente não mudam. Não há migração destrutiva do banco.
+Com a sessão ativa, o organizador pode cadastrar jogadores, iniciar o torneio, registrar ou corrigir resultados e resetar o campeonato.
 
-## Segurança e persistência
+### Resetar o torneio
 
-A API verifica a identidade ChatGPT no servidor e a compara com o único organizador salvo em D1. Ocultar botões não é a proteção de acesso. A ativação exige uma chave aleatória de 96 bits cujo SHA-256 é configurado como segredo de ambiente (`ORGANIZER_SETUP_HASH`). Nenhuma chave é incluída no código ou neste repositório. A ativação é atômica e não substitui um organizador existente.
+O botão **Resetar torneio** aparece somente para o organizador autenticado, na aba **Jogadores**.
 
-Ações de escrita verificam a origem da requisição, o formato do corpo, a versão do registro e os placares. Atualizações concorrentes são rejeitadas para evitar sobrescrita silenciosa. Os dados ficam em D1, e não em localStorage. A tela consulta as atualizações a cada 20 segundos.
+Antes de executar o reset, o sistema exige confirmação. A ação remove:
 
-O proxy confiável do Sites fornece os cabeçalhos de identidade. **Não hospede este servidor diretamente na internet aceitando cabeçalhos de identidade enviados por visitantes.** Para outro provedor, adapte autenticação e banco antes de publicar. GitHub Pages não executa esta API nem seu banco.
+- jogadores;
+- partidas;
+- resultados;
+- estado de início do torneio.
 
-## Desenvolvimento
+A senha e a sessão do organizador não são apagadas.
 
-Stack: React, TypeScript, Vinext/Vite, componentes Radix/shadcn, Cloudflare Workers e D1.
+## Persistência e segurança
 
-```sh
-npm install
-npm run db:generate # apenas se alterar o schema
-npm run build
-node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0000_windy_inertia.sql
-npm run dev
+Os dados são persistidos no **Supabase** por meio da API REST, acessada somente pelo backend do Next.js.
+
+A tabela usa controle de versão para evitar sobrescritas concorrentes. Se duas alterações acontecerem ao mesmo tempo, a segunda é rejeitada e a interface solicita atualização.
+
+A tabela `tournament_state` utiliza **Row Level Security (RLS)** e não possui políticas públicas. O acesso do servidor usa `SUPABASE_SECRET_KEY`, que deve permanecer somente no ambiente do backend.
+
+A API também valida:
+
+- sessão do organizador para alterações;
+- origem da requisição;
+- conteúdo JSON;
+- tamanho da requisição;
+- versão atual do torneio;
+- regras de pontuação dos sets.
+
+## Stack
+
+- **Next.js 16**
+- **React 19**
+- **TypeScript**
+- **Tailwind CSS 4**
+- **shadcn / Radix UI**
+- **Supabase**
+- **Vercel**
+- **pnpm**
+
+## Variáveis de ambiente
+
+Crie um arquivo `.env.local` para desenvolvimento ou configure as variáveis no projeto da Vercel.
+
+```env
+SUPABASE_URL=
+SUPABASE_SECRET_KEY=
+ORGANIZER_PASSWORD=
 ```
 
-O projeto inclui `pnpm-lock.yaml` para instalações reproduzíveis com pnpm. As migrações já geradas são versionadas em `drizzle/`; não reaplique manualmente uma migração já executada. A publicação Sites aplica as migrações em produção. O preview local não simula login: a área pública pode ser inspecionada, mas alterações autenticadas exigem o ambiente de identidade confiável.
+Na Vercel, configure as três variáveis em **Preview** e **Production**.
 
-```sh
-node --experimental-strip-types --test tests/*.test.mjs
-node node_modules/typescript/bin/tsc --noEmit
+> `SUPABASE_SECRET_KEY` e `ORGANIZER_PASSWORD` nunca devem ser enviados ao frontend ou versionados no GitHub.
+
+O projeto também aceita `ORGANIZER_SETUP_HASH` apenas como compatibilidade com a configuração antiga. Para novas instalações, use `ORGANIZER_PASSWORD`.
+
+## Configuração do Supabase
+
+No **SQL Editor** do Supabase, execute o conteúdo de:
+
+```text
+supabase/tournament_state.sql
 ```
 
-Os testes verificam exatamente 8 inscritos, quartas em set único, semifinais e final MD3, sete partidas até o campeão, classificação, correção de dependências, preservação dos dados antigos e autorização da API.
+Ele cria a tabela principal e o registro inicial:
 
-## Estrutura principal
+```sql
+create table if not exists public.tournament_state (
+  id integer primary key check (id = 1),
+  data jsonb not null,
+  version bigint not null default 0,
+  updated_at timestamptz not null default now()
+);
 
-- `app/arena.tsx`: interface, tabelas, filtros e formulários.
-- `app/api/tournament/route.ts`: leitura e alterações protegidas.
-- `lib/tournament.ts`: regras e classificação.
-- `lib/storage.ts`: acesso ao banco.
-- `db/schema.ts` e `drizzle/`: estrutura e migrações do banco.
-- `.openai/hosting.json`: configuração lógica de publicação.
+alter table public.tournament_state enable row level security;
 
-O GitHub guarda o código. Publicar alterações exige gerar e implantar uma nova versão; um push isolado no GitHub não altera automaticamente o site.
+insert into public.tournament_state (id, data, version)
+values (
+  1,
+  '{"format":"knockout-8","players":[],"matches":[],"started":false}'::jsonb,
+  0
+)
+on conflict (id) do nothing;
+```
+
+Não crie políticas públicas para essa tabela.
+
+## Desenvolvimento local
+
+Requisitos:
+
+- **Node.js 22.13 ou superior**
+- **pnpm 11**
+
+Instalação:
+
+```sh
+pnpm install
+```
+
+Inicie o ambiente local:
+
+```sh
+pnpm dev
+```
+
+Build de produção:
+
+```sh
+pnpm build
+pnpm start
+```
+
+Lint:
+
+```sh
+pnpm lint
+```
 
 ## Publicação no Vercel
 
-A branch `vercel-migration` roda como Next.js nativo no Vercel e usa o mesmo padrão simples do RespiraMente: Functions no Vercel acessando o Supabase REST diretamente.
+O projeto está conectado ao GitHub e usa integração automática com a Vercel.
 
-### Variáveis obrigatórias
+- pushes em branches geram **Preview Deployments**;
+- alterações integradas à `main` geram **Production Deployments**;
+- o framework é detectado como **Next.js**;
+- o build usa `pnpm build`.
 
-Configure no projeto do Vercel, em **Preview** e **Production**:
+Configuração atual em `vercel.json`:
 
-- `SUPABASE_URL`
-- `SUPABASE_SECRET_KEY`
-- `ORGANIZER_PASSWORD`
-
-A senha do organizador nunca é enviada para o frontend como configuração. Após o login, a API cria uma sessão assinada em cookie HttpOnly.
-
-### Supabase
-
-Execute o arquivo `supabase/tournament_state.sql` no SQL Editor do projeto Supabase antes do primeiro uso.
-
-### Build
-
-```sh
-pnpm install --frozen-lockfile
-pnpm build
+```json
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "buildCommand": "pnpm build",
+  "installCommand": "pnpm install --frozen-lockfile"
+}
 ```
 
-Com a integração Git ativa, pushes em branches geram Preview Deployments e a `main` publica em Production.
+## Estrutura principal
 
-<!-- preview redeploy after Vercel environment setup -->
+```text
+app/
+  arena.tsx                  Interface principal do torneio
+  api/tournament/route.ts    API de leitura e alterações
 
-<!-- preview redeploy after Supabase-Vercel integration -->
+lib/
+  organizer-auth.ts          Autenticação e sessão do organizador
+  storage.ts                 Persistência no Supabase
+  tournament.ts              Regras, chaveamento e classificação
 
-<!-- preview redeploy after SUPABASE_URL correction -->
+supabase/
+  tournament_state.sql       Estrutura inicial do banco
+
+public/
+  favicon.svg                Favicon do site
+```
+
+## Fluxo do torneio
+
+1. O organizador cadastra os 8 jogadores.
+2. O sistema sorteia os quatro confrontos das quartas.
+3. Os resultados das quartas definem automaticamente os semifinalistas.
+4. Os vencedores das semifinais avançam para a final.
+5. Após o resultado da final, o campeão é destacado automaticamente.
+6. Quando necessário, o organizador pode resetar o torneio e iniciar uma nova edição.
+
+## Repositório
+
+A branch principal de produção é:
+
+```text
+main
+```
+
+Para mudanças maiores de interface ou comportamento, prefira criar uma branch separada, validar no Preview da Vercel e só depois integrar à `main`.
