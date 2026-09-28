@@ -533,9 +533,10 @@ export default function Arena() {
             href="/telao"
             target="_blank"
             rel="noreferrer"
+            aria-label="Abrir modo telão"
+            title="Modo telão"
           >
-            <MonitorUp size={16} />
-            Modo telão
+            <MonitorUp size={17} />
           </a>
           <Button
             variant="outline"
@@ -569,16 +570,6 @@ export default function Arena() {
             {phase}
           </div>
         </div>
-
-        {!!data?.tournament.previousFormat &&
-          !data.tournament.started &&
-          !data.tournament.players.length && (
-            <div className="format-notice">
-              Novo formato: 16 jogadores, com Chave do Dia e Chave da Noite. O
-              estado anterior foi preservado e a nova edição pode ser cadastrada
-              sem apagar os dados antigos.
-            </div>
-          )}
 
         {error && (
           <div className="error-box" role="alert">

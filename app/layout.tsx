@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./tournament-v2.css";
 
 export const metadata: Metadata = {
   title: "Arena Coca-Cola | Torneio de Tênis de Mesa",
