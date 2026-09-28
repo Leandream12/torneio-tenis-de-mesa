@@ -755,3 +755,120 @@ button:focus-visible,a:focus-visible{
   .display-footer{padding:12px 14px;flex-direction:column;align-items:flex-start;gap:4px}
   .display-champion-screen h1{letter-spacing:-2px}
 }
+
+
+/* Champion celebration */
+.confetti-burst{
+  position:fixed;
+  inset:0;
+  overflow:hidden;
+  pointer-events:none;
+  z-index:9999;
+}
+.confetti-piece{
+  position:absolute;
+  left:50%;
+  top:46%;
+  width:10px;
+  height:17px;
+  opacity:0;
+  background:var(--confetti-color);
+  box-shadow:0 1px 0 rgba(0,0,0,.08);
+  transform-origin:center;
+  animation:confetti-explosion 4.15s cubic-bezier(.12,.72,.19,1) var(--delay) forwards;
+}
+.confetti-shape-0{border-radius:2px}
+.confetti-shape-1{width:9px;height:9px;border-radius:50%}
+.confetti-shape-2{
+  width:12px;
+  height:7px;
+  border-radius:999px;
+}
+@keyframes confetti-explosion{
+  0%{
+    opacity:0;
+    transform:translate3d(-50%,-50%,0) rotate(0deg) scale(.2);
+  }
+  5%{
+    opacity:1;
+  }
+  34%{
+    opacity:1;
+    transform:
+      translate3d(
+        calc(-50% + var(--burst-x)),
+        calc(-50% + var(--burst-y)),
+        0
+      )
+      rotate(var(--spin))
+      scale(var(--confetti-scale));
+  }
+  100%{
+    opacity:0;
+    transform:
+      translate3d(
+        calc(-50% + var(--drift-x)),
+        62vh,
+        0
+      )
+      rotate(calc(var(--spin) + 540deg))
+      scale(var(--confetti-scale));
+  }
+}
+
+.champion{
+  animation:champion-card-reveal .7s cubic-bezier(.2,.8,.2,1) both;
+}
+.champion>svg{
+  animation:champion-trophy-pop .9s cubic-bezier(.17,.89,.32,1.35) .08s both;
+}
+.champion h3{
+  animation:champion-name-reveal .75s cubic-bezier(.2,.8,.2,1) .22s both;
+}
+.display-champion-screen>svg{
+  animation:champion-trophy-pop 1s cubic-bezier(.17,.89,.32,1.35) .12s both;
+}
+.display-champion-screen>small{
+  animation:champion-name-reveal .7s ease .26s both;
+}
+.display-champion-screen h1{
+  animation:champion-name-reveal .85s cubic-bezier(.2,.8,.2,1) .38s both;
+}
+.display-final-card{
+  animation:champion-name-reveal .7s ease .58s both;
+}
+.display-champion-glow{
+  animation:champion-glow 2.1s ease-out both;
+}
+@keyframes champion-card-reveal{
+  from{opacity:0;transform:translateY(22px) scale(.97)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes champion-trophy-pop{
+  0%{opacity:0;transform:translateY(18px) scale(.35) rotate(-12deg)}
+  62%{opacity:1;transform:translateY(-5px) scale(1.15) rotate(5deg)}
+  100%{opacity:1;transform:translateY(0) scale(1) rotate(0)}
+}
+@keyframes champion-name-reveal{
+  from{opacity:0;transform:translateY(18px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes champion-glow{
+  0%{opacity:0;transform:scale(.45)}
+  55%{opacity:1;transform:scale(1.05)}
+  100%{opacity:.7;transform:scale(1)}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .confetti-burst{display:none!important}
+  .champion,
+  .champion>svg,
+  .champion h3,
+  .display-champion-screen>svg,
+  .display-champion-screen>small,
+  .display-champion-screen h1,
+  .display-final-card,
+  .display-champion-glow{
+    animation:none!important;
+  }
+}
