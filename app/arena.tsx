@@ -214,11 +214,9 @@ export default function Arena() {
   function openMatch(match: Match) {
     setEditing(match);
     setSets(
-      match.stage === 'ELIM' || match.stage === 'QF'
-        ? [match.sets[0]?.map(String) ?? ['', '']]
-        : [0, 1, 2].map(
-            index => match.sets[index]?.map(String) ?? ['', ''],
-          ),
+      [0, 1, 2].map(
+        index => match.sets[index]?.map(String) ?? ['', ''],
+      ),
     );
   }
 
@@ -776,7 +774,7 @@ export default function Arena() {
                             <span>01</span>
                             <section>
                               <b>Terça · Eliminatórias</b>
-                              <small>8 partidas · set único</small>
+                              <small>8 partidas · melhor de 3</small>
                             </section>
                             {tournament.matches.filter(
                               match => match.stage === 'ELIM' && winner(match),
@@ -793,7 +791,7 @@ export default function Arena() {
                             <span>02</span>
                             <section>
                               <b>Quarta · Quartas</b>
-                              <small>4 partidas · set único</small>
+                              <small>4 partidas · melhor de 3</small>
                             </section>
                           </div>
 
@@ -835,14 +833,9 @@ export default function Arena() {
                           Dentro das regras <ShieldCheck size={18} />
                         </h3>
                         <p>
-                          <b>Eliminatórias e quartas: set único</b>
+                          <b>Todas as partidas: melhor de 3</b>
                           <br />
-                          Ganhou o set, avançou.
-                        </p>
-                        <p>
-                          <b>Semifinais e final: melhor de 3</b>
-                          <br />
-                          Vence quem conquistar 2 sets.
+                          Vence quem conquistar 2 sets primeiro.
                         </p>
                         <p>
                           <b>11 pontos por set</b>
@@ -1395,9 +1388,7 @@ export default function Arena() {
           <DialogHeader>
             <DialogTitle>Resultado da partida</DialogTitle>
             <DialogDescription>
-              {editing?.stage === 'ELIM' || editing?.stage === 'QF'
-                ? `${editing ? stageName(editing.stage) : 'Partida'}: informe o placar do único set.`
-                : 'Melhor de 3 sets: vence quem ganhar 2. Deixe o 3º set vazio em caso de 2 × 0.'}
+              Melhor de 3 sets: vence quem ganhar 2. Deixe o 3º set vazio em caso de 2 × 0.
             </DialogDescription>
           </DialogHeader>
 
