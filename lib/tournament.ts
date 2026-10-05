@@ -126,11 +126,9 @@ export const stageDay = (stage: Stage) =>
         ? 'Quinta-feira'
         : 'Sexta-feira';
 
-export const setsToWin = (m: Pick<Match, 'stage'>) =>
-  m.stage === 'ELIM' || m.stage === 'QF' ? 1 : 2;
+export const setsToWin = (_m: Pick<Match, 'stage'>) => 2;
 
-export const formatName = (stage: Stage) =>
-  stage === 'ELIM' || stage === 'QF' ? 'Set único' : 'Melhor de 3 sets';
+export const formatName = (_stage: Stage) => 'Melhor de 3 sets';
 
 export function score(m: Match) {
   return m.sets.reduce(
@@ -152,11 +150,7 @@ export function validateSets(sets: unknown, stage: Stage): asserts sets is numbe
   const target = setsToWin({ stage });
 
   if (!Array.isArray(sets) || sets.length < target || sets.length > target * 2 - 1) {
-    throw new Error(
-      target === 1
-        ? 'Esta fase é decidida em apenas 1 set.'
-        : 'Informe 2 ou 3 sets completos.',
-    );
+    throw new Error('Informe 2 ou 3 sets completos.');
   }
 
   const won = [0, 0];
@@ -164,7 +158,7 @@ export function validateSets(sets: unknown, stage: Stage): asserts sets is numbe
   for (const set of sets) {
     if (won.includes(target)) {
       throw new Error(
-        `A partida termina quando um jogador vence ${target} ${target === 1 ? 'set' : 'sets'}.`,
+        `A partida termina quando um jogador vence ${target} sets.`,
       );
     }
 
@@ -190,7 +184,7 @@ export function validateSets(sets: unknown, stage: Stage): asserts sets is numbe
 
   if (!won.includes(target)) {
     throw new Error(
-      `Um jogador precisa vencer ${target} ${target === 1 ? 'set' : 'sets'}.`,
+      `Um jogador precisa vencer ${target} sets.`,
     );
   }
 }
