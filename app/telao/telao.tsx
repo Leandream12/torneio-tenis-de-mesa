@@ -306,7 +306,7 @@ export default function Telao() {
               </h1>
               <p>
                 {tournament.started
-                  ? 'Eliminatórias na terça, quartas na quarta, semifinais na quinta e a Grande Final na sexta.'
+                  ? 'Eliminatórias na quarta, quartas e semifinais na quinta e a Grande Final na sexta.'
                   : `Aguardando 8 jogadores no Dia e 8 na Noite. ${tournament.players.length}/16 cadastrados.`}
               </p>
             </div>

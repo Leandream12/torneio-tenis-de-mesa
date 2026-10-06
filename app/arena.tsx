@@ -635,8 +635,8 @@ export default function Arena() {
                   <section>
                     <small>SEMANA DO TORNEIO</small>
                     <strong>
-                      4 dias
-                      <em>terça → sexta</em>
+                      3 dias
+                      <em>quarta → sexta</em>
                     </strong>
                   </section>
                 </div>
@@ -766,14 +766,14 @@ export default function Arena() {
                         <p>
                           {champion
                             ? 'Campeão geral do torneio. Parabéns pela conquista!'
-                            : 'Uma fase por dia, de terça até sexta.'}
+                            : 'Três dias de torneio, de quarta até sexta.'}
                         </p>
 
                         <div className="steps four-steps">
                           <div className={tournament.started ? 'active' : ''}>
                             <span>01</span>
                             <section>
-                              <b>Terça · Eliminatórias</b>
+                              <b>Quarta · Eliminatórias</b>
                               <small>8 partidas · melhor de 3</small>
                             </section>
                             {tournament.matches.filter(
@@ -790,7 +790,7 @@ export default function Arena() {
                           >
                             <span>02</span>
                             <section>
-                              <b>Quarta · Quartas</b>
+                              <b>Quinta · Quartas</b>
                               <small>4 partidas · melhor de 3</small>
                             </section>
                           </div>
