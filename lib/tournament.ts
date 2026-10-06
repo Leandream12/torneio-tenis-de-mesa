@@ -119,12 +119,10 @@ export const stageName = (stage: Stage) =>
 
 export const stageDay = (stage: Stage) =>
   stage === 'ELIM'
-    ? 'Terça-feira'
-    : stage === 'QF'
-      ? 'Quarta-feira'
-      : stage === 'SF'
-        ? 'Quinta-feira'
-        : 'Sexta-feira';
+    ? 'Quarta-feira'
+    : stage === 'QF' || stage === 'SF'
+      ? 'Quinta-feira'
+      : 'Sexta-feira';
 
 export const setsToWin = (_m: Pick<Match, 'stage'>) => 2;
 
