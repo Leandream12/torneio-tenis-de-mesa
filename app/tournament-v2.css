@@ -858,3 +858,33 @@
   .shift-player-heading>header{min-width:0}
   .journey .steps.four-steps{grid-template-columns:1fr}
 }
+
+
+.replacement-form{
+  display:grid;
+  gap:16px;
+}
+.replacement-select{
+  width:100%;
+  height:40px;
+  padding:0 12px;
+  border:1px solid #d8cbc5;
+  border-radius:8px;
+  background:#fff;
+  color:#2d2724;
+  font-size:14px;
+  outline:none;
+}
+.replacement-select:focus{
+  border-color:#ef171f;
+  box-shadow:0 0 0 3px rgba(239,23,31,.1);
+}
+.replacement-note{
+  padding:12px 14px;
+  border:1px solid #eadbd6;
+  border-radius:10px;
+  background:#fff8f7;
+  color:#756862;
+  font-size:12px;
+  line-height:1.5;
+}
