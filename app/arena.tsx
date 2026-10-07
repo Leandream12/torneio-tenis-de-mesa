@@ -110,13 +110,15 @@ export default function Arena() {
   const [busy, setBusy] = useState(false);
   const [tab, setTab] = useState('overview');
   const [modal, setModal] = useState<
-    'players' | 'setup' | 'start' | 'reset' | 'organizer' | 'history' | 'restore' | null
+    'players' | 'setup' | 'start' | 'reset' | 'organizer' | 'replace' | 'history' | 'restore' | null
   >(null);
   const [dayNames, setDayNames] = useState('');
   const [nightNames, setNightNames] = useState('');
   const [key, setKey] = useState('');
   const [selectedSnapshot, setSelectedSnapshot] =
     useState<TournamentSnapshot | null>(null);
+  const [replacePlayerId, setReplacePlayerId] = useState('');
+  const [replacementName, setReplacementName] = useState('');
   const [editing, setEditing] = useState<Match | null>(null);
   const [sets, setSets] = useState<string[][]>([
     ['', ''],
@@ -1033,6 +1035,8 @@ export default function Arena() {
                     ? 'Resetar torneio'
                     : modal === 'organizer'
                       ? 'Painel do organizador'
+                      : modal === 'replace'
+                        ? 'Substituir jogador'
                       : modal === 'history'
                         ? 'Histórico e backups'
                         : modal === 'restore'
@@ -1048,6 +1052,8 @@ export default function Arena() {
                     ? 'O estado atual será salvo automaticamente no histórico antes de limpar as duas chaves.'
                     : modal === 'organizer'
                       ? 'Sua sessão está ativa. Gerencie o torneio, os backups e o modo telão por aqui.'
+                      : modal === 'replace'
+                        ? 'Troque apenas o nome do participante, mantendo a chave, a posição e o confronto sorteado. A substituição é bloqueada se esse jogador já tiver resultado registrado.'
                       : modal === 'history'
                         ? 'Cada alteração importante gera uma cópia recuperável do estado anterior do torneio.'
                         : modal === 'restore'
@@ -1183,6 +1189,31 @@ export default function Arena() {
                   </Button>
                 )}
 
+                {(tournament?.players.length ?? 0) > 0 && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      const preferred =
+                        tournament?.players.find(
+                          player =>
+                            player.name.toLocaleLowerCase('pt-BR') ===
+                            'itaciara menezes',
+                        ) ?? tournament?.players[0];
+
+                      setReplacePlayerId(preferred?.id ?? '');
+                      setReplacementName(
+                        preferred?.name === 'Itaciara Menezes'
+                          ? 'Ricardo Pereira'
+                          : '',
+                      );
+                      setModal('replace');
+                    }}
+                  >
+                    <Users size={16} />
+                    Substituir jogador
+                  </Button>
+                )}
+
                 <Button variant="outline" onClick={() => setModal('history')}>
                   <History size={16} />
                   Histórico e backups
@@ -1228,6 +1259,94 @@ export default function Arena() {
                 </Button>
               </div>
             </div>
+          )}
+
+          {modal === 'replace' && (
+            <form
+              className="replacement-form"
+              onSubmit={async event => {
+                event.preventDefault();
+
+                if (!replacePlayerId) {
+                  toast.error('Selecione o jogador que será substituído.');
+                  return;
+                }
+
+                if (
+                  await mutate(
+                    {
+                      type: 'replacePlayer',
+                      playerId: replacePlayerId,
+                      name: replacementName,
+                    },
+                    'Jogador substituído sem alterar o chaveamento.',
+                  )
+                ) {
+                  setModal(null);
+                  setReplacePlayerId('');
+                  setReplacementName('');
+                  setTab('players');
+                }
+              }}
+            >
+              <div>
+                <label className="form-label" htmlFor="replace-player">
+                  Jogador atual
+                </label>
+                <select
+                  id="replace-player"
+                  className="replacement-select"
+                  value={replacePlayerId}
+                  onChange={event => {
+                    setReplacePlayerId(event.target.value);
+                    setReplacementName('');
+                  }}
+                  required
+                >
+                  <option value="">Selecione um jogador</option>
+                  {tournament?.players.map(player => (
+                    <option value={player.id} key={player.id}>
+                      {player.name} · {bracketName(player.bracket)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="form-label" htmlFor="replacement-name">
+                  Novo jogador
+                </label>
+                <Input
+                  id="replacement-name"
+                  value={replacementName}
+                  onChange={event => setReplacementName(event.target.value)}
+                  placeholder="Ex.: Ricardo Pereira"
+                  minLength={2}
+                  maxLength={60}
+                  required
+                  autoFocus
+                />
+              </div>
+
+              <div className="replacement-note">
+                A posição na chave e o confronto permanecem os mesmos. O sistema
+                cria um backup antes da substituição.
+              </div>
+
+              <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={busy}
+                  onClick={() => setModal('organizer')}
+                >
+                  Cancelar
+                </Button>
+                <Button className="primary-btn" disabled={busy}>
+                  {busy ? 'Substituindo…' : 'Confirmar substituição'}
+                </Button>
+              </div>
+            </form>
           )}
 
           {modal === 'history' && (
