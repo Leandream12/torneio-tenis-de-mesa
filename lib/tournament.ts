@@ -456,6 +456,45 @@ export function applyAction(current: Tournament, action: Action): Tournament {
       ...makePlayers(dayNames, 'DAY'),
       ...makePlayers(nightNames, 'NIGHT'),
     ];
+  } else if (action.type === 'replacePlayer') {
+    if (typeof action.playerId !== 'string' || typeof action.name !== 'string') {
+      throw new Error('Substituição inválida.');
+    }
+
+    const player = t.players.find(item => item.id === action.playerId);
+    if (!player) throw new Error('Jogador não encontrado.');
+
+    const nextName = action.name.trim();
+
+    if (nextName.length < 2 || nextName.length > 60) {
+      throw new Error('Use um nome entre 2 e 60 caracteres.');
+    }
+
+    const duplicate = t.players.some(
+      item =>
+        item.id !== player.id &&
+        item.name.toLocaleLowerCase('pt-BR') ===
+          nextName.toLocaleLowerCase('pt-BR'),
+    );
+
+    if (duplicate) {
+      throw new Error('Já existe um jogador com esse nome no torneio.');
+    }
+
+    const hasRecordedResult = t.matches.some(
+      match =>
+        (match.a === player.id || match.b === player.id) &&
+        match.sets.length > 0,
+    );
+
+    if (hasRecordedResult) {
+      throw new Error(
+        'Este jogador já possui resultado registrado. Remova os resultados dele antes de fazer a substituição.',
+      );
+    }
+
+    addHistory(t, `Antes de substituir ${player.name} por ${nextName}`);
+    player.name = nextName;
   } else if (action.type === 'start') {
     if (t.started) throw new Error('O torneio já começou.');
 
